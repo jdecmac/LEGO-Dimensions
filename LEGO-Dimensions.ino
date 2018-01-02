@@ -41,8 +41,8 @@ extern "C" {
 
 // If using the breakout or shield with I2C, define just the pins connected
 // to the IRQ and reset lines.  Use the values below (2, 3) for the shield!
-#define PN532_IRQ   (2)
-#define PN532_RESET (3)  // Not connected by default on the NFC Shield
+#define PN532_IRQ   (PB12)
+#define PN532_RESET (PB13)  // Not connected by default on the NFC Shield
 
 // Uncomment just _one_ line below depending on how your breakout or shield
 // is connected to the Arduino:
@@ -54,10 +54,10 @@ extern "C" {
 // the PN532 SCK, MOSI, and MISO pins need to be connected to the Arduino's
 // hardware SPI SCK, MOSI, and MISO pins.  On an Arduino Uno these are
 // SCK = 13, MOSI = 11, MISO = 12.  The SS line can be any digital IO pin.
-// Adafruit_PN532 nfc(PA4);
+Adafruit_PN532 nfc(PA4);
 
 // Or use this line for a breakout or shield with an I2C connection:
-Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
+// Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 void setup(void) {
   Serial.begin(115200);
