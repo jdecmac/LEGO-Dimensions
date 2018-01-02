@@ -29,8 +29,10 @@ extern "C" {
 #include "LEGOchar.h"
 #include "characters.h"
 #include "vehicles_and_gadgets.h"
-
 }
+
+#define MAX_NAME_LEN 40 // Max length of a character/vehicle name
+
 // If using the breakout with SPI, define the pins for SPI communication.
 #define PN532_SCK  (2)
 #define PN532_MOSI (3)
@@ -39,8 +41,8 @@ extern "C" {
 
 // If using the breakout or shield with I2C, define just the pins connected
 // to the IRQ and reset lines.  Use the values below (2, 3) for the shield!
-#define PN532_IRQ   (PB12)
-#define PN532_RESET (PB13)  // Not connected by default on the NFC Shield
+#define PN532_IRQ   (2)
+#define PN532_RESET (3)  // Not connected by default on the NFC Shield
 
 // Uncomment just _one_ line below depending on how your breakout or shield
 // is connected to the Arduino:
@@ -52,10 +54,10 @@ extern "C" {
 // the PN532 SCK, MOSI, and MISO pins need to be connected to the Arduino's
 // hardware SPI SCK, MOSI, and MISO pins.  On an Arduino Uno these are
 // SCK = 13, MOSI = 11, MISO = 12.  The SS line can be any digital IO pin.
-Adafruit_PN532 nfc(PA4);
+// Adafruit_PN532 nfc(PA4);
 
 // Or use this line for a breakout or shield with an I2C connection:
-//Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
+Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 void setup(void) {
   Serial.begin(115200);
@@ -81,6 +83,8 @@ void loop(void) {
   uint8_t c=1,i=0;
   String charArray;
   uint16_t x = 0;
+  char buffer[MAX_NAME_LEN]; // string to read from progmem
+
 charArray="";
 
   delay(1);
@@ -102,15 +106,19 @@ charArray="";
       c++;
       }
        if (x < 50) {
-        Serial.println(legoCharacterStr[x]);
+        strcpy_P(buffer, (char*)pgm_read_word(&(legoCharacterStr[x])));
+        Serial.println(buffer);
+//         Serial.println(legoCharacterStr[x]);
         WriteTag(x, 1);    //where 15 char id from 1 to 45 or  1000 to 1999 for vehicle
       }
 
       if ((x >= 1000)&(x<=1169)) {
-        Serial.println(legoVehicleStr[x - 1000]);
+        strcpy_P(buffer, (char*)pgm_read_word(&(legoVehicleStr[x - 1000])));
+        Serial.println(buffer);
+//         Serial.println(legoVehicleStr[x - 1000]);
         WriteTag(x, 1);    //where 15 char id from 1 to 45 or  1000 to 1999 for vehicle
       }
-    
+
 //    WriteTag(x, 1);		//where 15 char id from 1 to 45 or  1000 to 1999 for vehicle
   }
 }
@@ -178,6 +186,8 @@ uint8_t WriteTag(uint16_t charid, boolean backup) {
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
   uint16_t tag = 1;
+  char buffer[MAX_NAME_LEN]; // string to read from progmem
+
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
   if (success) {
@@ -271,7 +281,9 @@ uint8_t WriteTag(uint16_t charid, boolean backup) {
       pwdgen(uid, data43);		//Gen PWD
 
       if (charid < 0xFF) {
-        Serial.println(legoCharacterStr[charid]);
+        strcpy_P(buffer, (char*)pgm_read_word(&(legoCharacterStr[charid])));
+        Serial.println(buffer);
+//         Serial.println(legoCharacterStr[charid]);
         encryptID(uid, charid, datachar);	//Encrypt Character
         //nfc.PrintHexChar(datachar, 8);
         success = nfc.ntag2xx_WritePage(36, &datachar[0]);
@@ -297,7 +309,9 @@ uint8_t WriteTag(uint16_t charid, boolean backup) {
       }
 
       if (charid >= 1000) {
-        Serial.println(legoVehicleStr[charid - 1000]);
+        strcpy_P(buffer, (char*)pgm_read_word(&(legoVehicleStr[charid - 1000])));
+        Serial.println(buffer);
+//         Serial.println(legoVehicleStr[charid - 1000]);
         data0[0] = charid & 0xff;
         data0[1] = (charid >> 8) & 0xff;
 
